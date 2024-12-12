@@ -10,7 +10,7 @@ const includes = [];
 let result = "";
 
 for (const match of file.matchAll(
-    /(?<word>\w+)|(?<paren>[<>(){}[\]])|(?<comment>\/\/.*$|\/\*[^]*?\*\/)|(?<punctuation>([^])\5*)/gmy,
+    /(?<range>\d+\.\.(?:=(?=\d))?\d*)|(?<word>\w+)|(?<paren>[<>(){}[\]])|(?<comment>\/\/.*$|\/\*[^]*?\*\/)|(?<punctuation>([^])\6*)/gm
 )) {
     const buf = Object.entries(match.groups).filter(
         ([_, v]) => v !== undefined,
@@ -38,5 +38,5 @@ for (const match of file.matchAll(
 }
 
 result = `import { ${includes.toString()} } from "./std.js";\n${result}`;
-console.log("Done compiling!!\n\n");
+console.log("Done compiling!!\n\n", result);
 Deno.writeTextFileSync(Deno.realPathSync(Deno.args[0]) + ".js", result);
