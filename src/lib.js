@@ -1,10 +1,12 @@
-const LOGGING = false;
+import { parseClass } from "./classParser.js";
+
+let LOGGING = false;
 
 function log(...args) {
     if (LOGGING) console.log(...args);
 }
 
-function splitParameters(paramString) {
+export function splitParameters(paramString) {
     const params = [];
     let currentParam = "";
     let bracketCount = 0; // To track nested brackets
@@ -35,6 +37,8 @@ function splitParameters(paramString) {
 
 function parseStr(groups) {
     if (groups.strChar !== "`") return [groups.str, new Set()];
+    const LOGGING_ = LOGGING;
+    LOGGING = false;
     log("pStr(start): ", [groups.str], groups.strChar, "`");
 
     const str = groups.strContent;
@@ -75,28 +79,37 @@ function parseStr(groups) {
         }
     }
     log("pStr(end): ", [result, inc]);
+    LOGGING = LOGGING_;
     return ["`" + result + "`", inc];
 }
 export function parse(src, { includes } = { includes: new Set() }) {
     let result = "";
     for (const match of src.matchAll(
-        /(?<str>(?<strChar>['"`])(?<strContent>[^]*?)(?<!\\)\k<strChar>)|(?<forCapture>for *\( *(?<FCIterable>[^)]*?) *\) *\| *(?<FCVariable>[^|]*?) *\|)|(?<range>\d+\.\.(?:=(?=\d))?\d*)|(?<word>\w+)|(?<paren>[<>(){}[\]])|(?<comment>\/\/.*$|\/\*[^]*?\*\/)|(?<punc>(?<puncChar>[^])\k<puncChar>*)/gm,
+        /(?<class>(?<=(?<classPad>\n *))(?<classType>class|struct)[^{]+{[^]*?(?<=\k<classPad>)})|(?<str>(?<strChar>['"`])(?<strContent>[^]*?)(?<!\\)\k<strChar>)|(?<forCapture>for *\( *(?<FCIterable>[^)]*?) *\) *\| *(?<FCVariable>[^|]*?) *\|)|(?<range>\d+\.\.(?:=(?=\d))?\d*)|(?<word>\w+)|(?<paren>[<>(){}[\]])|(?<comment>\/\/.*$|\/\*[^]*?\*\/)|(?<pad>[^])/gm,
     )) {
-        const { groups } = match;
-
-        const buf = Object.entries(groups).filter(
+        let { groups } = match;
+        const buf = (groups = Object.entries(groups).filter(
             ([_, v]) => v !== undefined,
-        )[0];
+        ))[0];
+        groups = Object.fromEntries(groups);
         switch (buf[0]) {
+            case "class": {
+                log("I:", buf);
+                parseClass(buf[1]);
+                log("O:", buf);
+                break;
+            }
             case "str": {
+                log("I:", buf);
                 const [res, inc] = parseStr(groups);
                 buf[1] = res;
-                console.log(includes, inc);
                 includes = includes.union(inc);
+                log("O:", buf);
                 break;
             }
             case "forCapture": {
-                if (!includes.has("FCIter")) includes.add("FCIter");
+                log("I:", buf);
+                includes.add("FCIter");
                 const { FCIterable, FCVariable } = groups;
                 const [iterables, variables] = [
                     splitParameters(FCIterable),
@@ -114,20 +127,23 @@ export function parse(src, { includes } = { includes: new Set() }) {
                 }
                 while (iterables.length > variables.length) variables.push("_");
                 buf[1] = `for (const [${variables}] of FCIter(${iterables.map((v) => parse(v)[0])}))`;
+                log("O:", buf);
                 break;
             }
             case "range": {
+                log("I:", buf);
                 const including = buf[1] !== (buf[1] = buf[1].replace("=", ""));
                 let [min, max] = buf[1].split("..");
                 if (including && max !== "") max = Number(max) + 1;
-                if (!includes.has("range")) includes.add("range");
+                includes.add("range");
                 buf[1] = `range(${max === "" ? min : [min, max]})`;
+                log("O:", buf);
                 break;
             }
             default:
+                // log(buf);
                 break;
         }
-        log(buf);
         result += buf[1];
     }
     return [result, { includes }];
