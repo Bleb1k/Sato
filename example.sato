@@ -1,25 +1,22 @@
 // console.log(new Array(123).fill(0).map((_, id) => id));
-
+// Accumulated \`0..=100\` into ${0..=100.reduce((a,b) => a+b)} by reduce
 console.log(0..=123);
 console.log(10..123);
 console.log(0..);
-console.log(10..);
+console.log(10.., "abc");
+console.log(`Accumulated \`0..=1000\` into ${0..=1000.reduce((a,b) => a+b)} by reduce`)
 
-for (const i of 0..) {
-    if (i > 100) break;
-    console.log(i);
-}
 
 /* ----- for-of capture ----- */
 
-for (0..100) |i| {
-    console.log(i);
-}
-for (["a",1,{},false], 0..) |v, i| {
-    console.log(`Item #${i} is ${v}`);
+let acc = 0
+for (0..1000) |i| { acc += i }
+console.log(`Accumulated \`0..1000\` into ${acc} by capture`)
+for (["a",1,{},false], [1, 2], 0..) |v, v2, i| {
+    console.log(`Items #${i} is ${v} and ${v2}`);
 }
 
-/* ----- op tag----- */
+/* ----- operator overload ----- */
 /*
 class ZigString {
   /**
@@ -38,15 +35,15 @@ class ZigString {
   constructor(#data = str = "default") { }
 
 
-    // operators tell the compiler to keep track of certain operations done with this struct or class and replace these operations with assigned functions
-    concatAssign | ++=| (/** @type {ZigString} * /other) {
-  this.#data += other.#data
-}
+  // operators tell the compiler to keep track of certain operations done with this struct or class and replace these operations with assigned functions
+  concatAssign |++=| (/** @type {ZigString} * /other) {
+    this.#data += other.#data
+  }
 
-// yes in this case doing `foo ++= bar ++= baz` is cheaper, but in reality you must use this function at a stupid scale to see any difference
-concat | ++| (/** @type {ZigString} * /other) {
-  return new ZigString(self.#data + other.#data)
-}
+  // yes in this case doing `foo ++= bar ++= baz` is cheaper, but in reality you must use this function at a stupid scale to see any difference
+  concat |++| (/** @type {ZigString} * /other) {
+    return new ZigString(self.#data + other.#data)
+  }
 }
 */
 /* ----- native types ----- */
@@ -59,7 +56,7 @@ concat | ++| (/** @type {ZigString} * /other) {
 // let c = 0_f64
 // let d = 0_i8
 
------ struct-----
+// ----- struct-----
   // goes hand in hand with native types, and is just a sugar for underlying library
   // works similarly to C structs
 
@@ -78,6 +75,4 @@ concat | ++| (/** @type {ZigString} * /other) {
   //     }
   // }
 
-  ----- end----- 
-*/
-
+//   ----- end-----
