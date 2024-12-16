@@ -1,4 +1,4 @@
-import { parse } from "./src/lib.js";
+import { parse } from "./lib.js";
 
 const args = Deno.args;
 
@@ -7,10 +7,10 @@ if (!args.length) {
 }
 
 const filePath = Deno.realPathSync(Deno.args[0]);
-let src = Deno.readTextFileSync(filePath);
+const src = Deno.readTextFileSync(filePath);
 
 let [result, { includes }] = parse(src);
 
 result = `import { ${[...includes.values()]} } from "./lib/std.js";\n${result}`;
 
-Deno.writeTextFileSync(Deno.realPathSync(Deno.args[0]) + ".js", result);
+Deno.writeTextFileSync(filePath + ".js", result);

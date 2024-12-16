@@ -11,7 +11,7 @@ export function splitParameters(paramString) {
     let currentParam = "";
     let bracketCount = 0; // To track nested brackets
 
-    for (let char of paramString) {
+    for (const char of paramString) {
         if (char === "[" || char === "{" || char === "(") {
             bracketCount++;
         } else if (char === "]" || char === "}" || char === ")") {
@@ -47,7 +47,7 @@ function parseStr(groups) {
     let result = "";
     let inc = new Set();
 
-    for (let i = 0; i < str.length; ) {
+    for (let i = 0; i < str.length;) {
         let char = str[i++];
         // log(i - 1, "char:", char);
         if (depth === 0) {
@@ -84,9 +84,11 @@ function parseStr(groups) {
 }
 export function parse(src, { includes } = { includes: new Set() }) {
     let result = "";
-    for (const match of src.matchAll(
-        /(?<class>(?<=(?<classPad>\n *))(?<classType>class|struct)[^{]+{[^]*?(?<=\k<classPad>)})|(?<str>(?<strChar>['"`])(?<strContent>[^]*?)(?<!\\)\k<strChar>)|(?<forCapture>for *\( *(?<FCIterable>[^)]*?) *\) *\| *(?<FCVariable>[^|]*?) *\|)|(?<range>\d+\.\.(?:=(?=\d))?\d*)|(?<word>\w+)|(?<paren>[<>(){}[\]])|(?<comment>\/\/.*$|\/\*[^]*?\*\/)|(?<pad>[^])/gm,
-    )) {
+    for (
+        const match of src.matchAll(
+            /(?<class>(?<=(?<classPad>\n *))(?<classType>class|struct)[^{]+{[^]*?(?<=\k<classPad>)})|(?<str>(?<strChar>['"`])(?<strContent>[^]*?)(?<!\\)\k<strChar>)|(?<forCapture>for *\( *(?<FCIterable>[^)]*?) *\) *\| *(?<FCVariable>[^|]*?) *\|)|(?<range>\d+\.\.(?:=(?=\d))?\d*)|(?<word>\w+)|(?<paren>[<>(){}[\]])|(?<comment>\/\/.*$|\/\*[^]*?\*\/)|(?<pad>[^])/gm,
+        )
+    ) {
         let { groups } = match;
         const buf = (groups = Object.entries(groups).filter(
             ([_, v]) => v !== undefined,
@@ -118,15 +120,15 @@ export function parse(src, { includes } = { includes: new Set() }) {
                 if (iterables.length < variables.length) {
                     // TODO: getPosition -> `${line}:${index}`
                     throw new Error(
-                        `Can't capture ${variables.length} parameters, ${
-                            iterables.length
-                        } supplied.\n    at file://${
-                            filePath
-                        } index:${match.index}\n        ${match[0]}`,
+                        `Can't capture ${variables.length} parameters, ${iterables.length} supplied.\n    at file://${filePath} index:${match.index}\n        ${
+                            match[0]
+                        }`,
                     );
                 }
                 while (iterables.length > variables.length) variables.push("_");
-                buf[1] = `for (const [${variables}] of FCIter(${iterables.map((v) => parse(v)[0])}))`;
+                buf[1] = `for (const [${variables}] of FCIter(${
+                    iterables.map((v) => parse(v)[0])
+                }))`;
                 log("O:", buf);
                 break;
             }
