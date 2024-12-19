@@ -1,5 +1,7 @@
 import { parse } from "./lib.js";
-
+class Foo {
+    constructor({ abc } = { abc: 1 }) {}
+}
 const args = Deno.args;
 
 if (!args.length) {

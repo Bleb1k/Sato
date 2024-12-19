@@ -97,7 +97,7 @@ export function parse(src, { includes } = { includes: new Set() }) {
         switch (buf[0]) {
             case "class": {
                 log("I:", buf);
-                parseClass(buf[1]);
+                buf[1] = parseClass(buf[1]);
                 log("O:", buf);
                 break;
             }
